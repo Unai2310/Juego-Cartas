@@ -41,7 +41,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         if (card.value === '?' && card.suit === '?') {
             return (
                 <img
-                    src="/cards/back.png"
+                    src="public/cards/back.png"
                     alt="Hidden card"
                     className="rounded-lg shadow-lg"
                     style={{ width: 'auto', height: '8rem' }}
@@ -50,7 +50,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         } else {
             return (
                 <img
-                    src={`/cards/${filename}`}
+                    src={`public/cards/${filename}`}
                     alt={`${card.value} of ${card.suit}`}
                     className="rounded-lg shadow-lg"
                     style={{ width: 'auto', height: '8rem' }}

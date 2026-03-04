@@ -5,9 +5,10 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
+const httpServer = http.createServer(app);
+
 app.use(cors());
 
-const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
     cors: {
         origin: "*",

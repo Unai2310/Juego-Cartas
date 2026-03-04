@@ -47,7 +47,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         } else {
             const suitMap = { '♥': 'H', '♦': 'D', '♣': 'C', '♠': 'S' };
             const valueMap = { 'A': 'A', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10', 'J': 'J', 'Q': 'Q', 'K': 'K' };
-            filename = `${valueMap[card.value]}${suitMap[card.suit]}.png`;
+            filename = `${valueMap[card.value]}${suitMap[card.suit]}.PNG`;
         }
 
         console.log('Trying to load:', `/cards/${filename}`);

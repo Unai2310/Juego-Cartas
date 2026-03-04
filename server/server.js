@@ -1,0 +1,342 @@
+const express = require('express');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+const Game = require('./game');
+
+const app = express();
+app.use(cors());
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:5173", // Root URL servidor
+        methods: ["GET", "POST"]
+    }
+});
+
+// Guardar partidas activas: gameCode -> Game instance
+const games = new Map();
+
+// Generar un numero de sala aleatorio
+function generateGameCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+io.on('connection', (socket) => {
+    //console.log('User connected:', socket.id);
+
+    let currentGameCode = null;
+
+    // Crear una nueva partida
+    socket.on('createGame', (settings, callback) => {
+        const gameCode = generateGameCode();
+        const game = new Game(gameCode, settings);
+        games.set(gameCode, game);
+
+        game.addPlayer(socket.id, settings.playerName);
+        currentGameCode = gameCode;
+        socket.join(gameCode);
+
+        callback({ success: true, gameCode });
+        io.to(gameCode).emit('gameState', game.getGameState(socket.id));
+    });
+
+    // Unirse a partida existente
+    socket.on('joinGame', (data, callback) => {
+        const { gameCode, playerName } = data;
+        const game = games.get(gameCode);
+
+        if (!game) {
+            callback({ success: false, error: 'Game not found' });
+            return;
+        }
+
+        try {
+            game.addPlayer(socket.id, playerName);
+            currentGameCode = gameCode;
+            socket.join(gameCode);
+
+            callback({ success: true });
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+        } catch (error) {
+            callback({ success: false, error: error.message });
+        }
+    });
+
+    // Cambiar tipo de baraja
+    socket.on('changeDeckType', (newDeckType, callback) => {
+        if (!currentGameCode) {
+            return callback({ success: false, error: 'No hay una partida activa' });
+        }
+
+        const game = games.get(currentGameCode);
+        if (!game) {
+            return callback({ success: false, error: 'Partida no encontrada' });
+        }
+
+        try {
+            game.changeDeckType(socket.id, newDeckType);
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+
+            callback({ success: true });
+        } catch (error) {
+            callback({ success: false, error: error.message });
+        }
+    });
+
+    // Cambiar de dealer
+    socket.on('changeDealer', (newDealerId, callback) => {
+        if (!currentGameCode) return;
+
+        const game = games.get(currentGameCode);
+        if (!game) return;
+
+        try {
+            game.changeDealer(socket.id, newDealerId);
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+
+            callback({ success: true });
+        } catch (error) {
+            callback({ success: false, error: error.message });
+        }
+    });
+
+    // Empezar la partida
+    socket.on('startGame', (startingDealerId) => {
+        if (!currentGameCode) return;
+
+        const game = games.get(currentGameCode);
+        if (!game) return;
+
+        try {
+            game.startGame(startingDealerId);
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+        } catch (error) {
+            socket.emit('error', error.message);
+        }
+    });
+
+    // Realizar apuesta de victorias (rondas de 5 a 2 cartas)
+    socket.on('placeBet', (bet) => {
+        if (!currentGameCode) return;
+
+        const game = games.get(currentGameCode);
+        if (!game) return;
+
+        try {
+            game.placeBet(socket.id, bet);
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+        } catch (error) {
+            socket.emit('error', error.message);
+        }
+    });
+
+    // Realizar apuesta de resultado (Ronda de 1 carta)
+    socket.on('placeOneCardBet', (willWin) => {
+        if (!currentGameCode) return;
+
+        const game = games.get(currentGameCode);
+        if (!game) return;
+
+        try {
+            game.placeOneCardBet(socket.id, willWin);
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+        } catch (error) {
+            socket.emit('error', error.message);
+        }
+    });
+
+    // Jugar una carta
+    socket.on('playCard', (cardIndex) => {
+        if (!currentGameCode) return;
+
+        const game = games.get(currentGameCode);
+        if (!game) return;
+
+        try {
+            game.playCard(socket.id, cardIndex);
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+        } catch (error) {
+            socket.emit('error', error.message);
+        }
+    });
+
+    // Cambiar de mano (El ganadaor de la anterior pulsa el boton)
+    socket.on('continueToNextTrick', () => {
+        if (!currentGameCode) return;
+
+        const game = games.get(currentGameCode);
+        if (!game) return;
+
+        try {
+            game.continueToNextTrick();
+
+            // Send game state to all players
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+        } catch (error) {
+            socket.emit('error', error.message);
+        }
+    });
+
+    // Continuar a la siguiente ronda
+    socket.on('continueToNextRound', () => {
+        if (!currentGameCode) return;
+
+        const game = games.get(currentGameCode);
+        if (!game) return;
+
+        try {
+            // Comprobar si la partida ha acabado
+            if (game.currentPhase === 'gameEnd') {
+                //console.log('Game ended, notifying players');
+                io.to(currentGameCode).emit('gameEnded');
+                games.delete(currentGameCode);
+                return;
+            }
+            game.startNewRound();
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+        } catch (error) {
+            socket.emit('error', error.message);
+        }
+    });
+
+    // Resetear y jugar de nuevo (Boton Jugar de nuevo)
+    socket.on('restartGame', () => {
+        //console.log('Restart game event received from:', socket.id);
+
+        if (!currentGameCode) {
+            //console.log('No current game code');
+            return;
+        }
+
+        const game = games.get(currentGameCode);
+        if (!game) {
+            //console.log('Game not found');
+            return;
+        }
+
+        //console.log('Creator ID:', game.creatorId, 'Socket ID:', socket.id);
+
+        // Comprobar que el unico que puede resetear es el creador de sala
+        if (socket.id !== game.creatorId) {
+            //console.log('Not the creator, rejecting');
+            socket.emit('error', 'Only the host can restart the game');
+            return;
+        }
+
+        try {
+            //console.log('Restarting game...');
+            game.restartGame();
+
+            // Mandar actualización a jugadores de la partida
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+            //console.log('Game restarted successfully');
+        } catch (error) {
+            //console.log('Error restarting:', error);
+            socket.emit('error', error.message);
+        }
+    });
+
+    // Tratamiento de la desconexion
+    socket.on('disconnect', () => {
+        //console.log('User disconnected:', socket.id);
+
+        if (currentGameCode) {
+            const game = games.get(currentGameCode);
+            if (game) {
+                game.removePlayer(socket.id);
+
+                // Comprobar si hay jugadores todavia conectados para eliminar la sala
+                const socketsInRoom = io.sockets.adapter.rooms.get(currentGameCode);
+
+                if (!socketsInRoom || socketsInRoom.size === 0) {
+                    //console.log(`Deleting empty game: ${currentGameCode}`);
+                    games.delete(currentGameCode);
+                } else {
+                    // Mandar actualización a jugadores de la partida
+                    game.playerOrder.forEach(playerId => {
+                        if (socketsInRoom.has(playerId)) {
+                            io.to(playerId).emit('gameState', game.getGameState(playerId));
+                        }
+                    });
+                }
+            }
+        }
+    });
+
+    // Echar a un jugador
+    socket.on('kickPlayer', (targetId, callback) => {
+        //console.log('Kick event received. Target:', targetId, 'From:', socket.id);
+
+        if (!currentGameCode) {
+            //console.log('No current game code');
+            return;
+        }
+
+        const game = games.get(currentGameCode);
+        if (!game) {
+            //console.log('Game not found');
+            return;
+        }
+
+        try {
+            const kickedName = game.kickPlayer(socket.id, targetId);
+            //console.log('Player kicked successfully:', kickedName);
+
+            // Notify the kicked player
+            io.to(targetId).emit('youWereKicked');
+
+            // Update all remaining players
+            game.playerOrder.forEach(playerId => {
+                io.to(playerId).emit('gameState', game.getGameState(playerId));
+            });
+
+            callback({ success: true, kickedName });
+        } catch (error) {
+            //console.log('Error kicking player:', error.message);
+            callback({ success: false, error: error.message });
+        }
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

@@ -1,19 +1,19 @@
-# Card Game - Multiplayer Online
+# Juego de Cartas - Multijugador Online
 
-A real-time multiplayer card game supporting both Poker (French) and Spanish decks. Features include betting mechanics, 1-card special rounds, and live ranking.
+Un juego de cartas multijugador en tiempo real que admite tanto baraja de Póker (francesa) como baraja Española. Incluye mecánicas de apuestas, rondas especiales de 1 carta y clasificación en vivo.
 
-## 🎮 Features
+## 🎮 Características
 
-- **Two Deck Types**: Choose between Poker (52 cards, max 10 players) or Spanish (40 cards, max 8 players)
-- **Real-time Multiplayer**: Play with friends using room codes
-- **Strategic Gameplay**: Bet on how many hands you'll win, with dealer restrictions
-- **Special 1-Card Round**: Can't see your own card - bluff, deceive, or help others!
-- **Duel Mode**: When 2 players remain, only 1-card rounds are played
-- **Live Ranking**: Sidebar shows player ranking by remaining lives
-- **Hand-by-Hand Results**: Winner picks up cards after each hand
-- **Dealer Selection**: Host can choose random or manual dealer assignment
+- **Dos tipos de baraja**: Elige entre Póker (52 cartas, máximo 10 jugadores) o Española (40 cartas, máximo 8 jugadores)
+- **Multijugador en tiempo real**: Juega con amigos usando códigos de sala
+- **Juego estratégico**: Apuesta cuántas manos crees que vas a ganar, con restricciones para el repartidor
+- **Ronda especial de 1 carta**: ¡No puedes ver tu propia carta! Engaña, farolea o ayuda a otros
+- **Modo Duelo**: Cuando quedan 2 jugadores, solo se juegan rondas de 1 carta
+- **Clasificación en vivo**: La barra lateral muestra el ranking según las vidas restantes
+- **Resultados mano a mano**: El ganador recoge las cartas después de cada mano
+- **Selección de repartidor**: El anfitrión puede elegir asignación aleatoria o manual del repartidor
 
-## 🚀 Tech Stack
+## 🚀 Tecnologías utilizadas
 
 **Frontend:**
 - React + Vite
@@ -25,178 +25,56 @@ A real-time multiplayer card game supporting both Poker (French) and Spanish dec
 - Express
 - Socket.IO
 
-## 📦 Installation
+## 🎯 Cómo jugar
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm
+### Configuración de la partida
 
-### Local Setup
+1. Introduce tu nombre en la sala de espera  
+2. Elige el tipo de baraja (Póker o Española)  
+3. Crea una nueva partida o únete con un código de sala  
+4. El anfitrión puede configurar:
+   - Tipo de baraja
+   - Repartidor inicial (aleatorio o manual)
+5. Espera a que se unan jugadores (mínimo 2)  
+6. El anfitrión inicia la partida  
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/card-game.git
-cd card-game
-```
+### Rondas normales (5-2 cartas)
 
-2. **Install dependencies**
-```bash
-# Install server dependencies
-cd server
-npm install
+**1️⃣ Fase de reparto**
+- Se reparten cartas según la ronda actual (5→4→3→2)
 
-# Install client dependencies
-cd ../client
-npm install
-```
+**2️⃣ Fase de apuestas**
+- Los jugadores apuestan cuántas manos creen que ganarán
+- Restricción del repartidor: La suma total de apuestas no puede ser igual al número de cartas repartidas
+- El orden de apuesta comienza después del repartidor
 
-3. **Run the development servers**
+**3️⃣ Fase de juego**
+- Cada jugador juega una carta por mano
+- La carta más alta gana la mano
+- El ganador de la mano recoge las cartas y empieza la siguiente
+- Valores en Póker: A(1) < 2 < 3... < K(13)
+- Valores en Española: 1 < 2... < 7 < Sota(10) < Caballo(11) < Rey(12)
 
-Terminal 1 (Server):
-```bash
-cd server
-node server.js
-```
+**4️⃣ Fase de puntuación**
+- Pérdida de vidas = |apuesta - manos ganadas|
+- Se asigna el siguiente repartidor (o el anfitrión puede reasignarlo)
 
-Terminal 2 (Client):
-```bash
-cd client
-npm run dev
-```
+### Ronda especial de 1 carta
 
-4. **Open your browser**
-Navigate to `http://localhost:5173`
+- **¡No puedes ver tu propia carta!**
+- Puedes ver las cartas de los demás
+- Apuesta "Gano" o "Pierdo"
+- Pierdes 1 vida si fallas
+- No hay restricciones de comunicación: ¡farolea libremente!
 
-## 🎯 How to Play
+### Modo Duelo (2 jugadores)
 
-### Game Setup
-1. Enter your name in the lobby
-2. Choose deck type (Poker or Spanish)
-3. Create a new game or join with a room code
-4. Host can configure:
-   - Deck type
-   - Starting dealer (random or manual)
-5. Wait for players to join (minimum 2)
-6. Host starts the game
+Cuando solo quedan 2 jugadores, se juegan únicamente rondas de 1 carta hasta que haya un ganador.
 
-### Normal Rounds (5-2 cards)
+### Condición de victoria
 
-**1️⃣ Deal Phase**
-- Cards are dealt based on current round (5→4→3→2)
+¡El último jugador con vidas restantes gana!
 
-**2️⃣ Betting Phase**
-- Players bet how many hands they'll win
-- Dealer restriction: Total bets cannot equal cards dealt
-- Betting order starts after dealer
+## 👥 Autores
 
-**3️⃣ Playing Phase**
-- Players play one card per hand
-- Highest card wins the hand
-- Hand winner picks up cards to continue
-- Card values: A(1) < 2 < 3... < K(13) for Poker
-- Card values: 1 < 2... < 7 < Sota(10) < Caballo(11) < Rey(12) for Spanish
-
-**4️⃣ Scoring Phase**
-- Life loss = |bet - actual wins|
-- Next dealer is assigned (or host can reassign)
-
-### Special 1-Card Round
-
-- **Can't see your own card!**
-- See everyone else's cards
-- Bet "Gano" (win) or "Pierdo" (lose)
-- Lose 1 life if wrong
-- No communication restrictions - bluff freely!
-
-### Duel Mode (2 Players)
-When only 2 players remain, only 1-card rounds are played until a winner emerges.
-
-### Victory Condition
-Last player with lives remaining wins!
-
-## 🎨 Card Assets
-
-Place card PNG files in `client/public/cards/`:
-
-**Poker Deck:**
-- Format: `ValueSuit.png` (e.g., `AH.png`, `KS.png`, `10D.png`)
-- Suits: H (Hearts), D (Diamonds), C (Clubs), S (Spades)
-
-**Spanish Deck:**
-- Format: `ValueSuit.png` (e.g., `1O.png`, `RB.png`)
-- Suits: O (Oros), C (Copas), E (Espadas), B (Bastos)
-- Values: 1-7, S (Sota), C (Caballo), R (Rey)
-
-**Card Back:**
-- `BACK.png` for hidden cards
-
-## 🌐 Deployment
-
-### Deploy to Render.com
-
-1. **Push to GitHub**
-```bash
-git add .
-git commit -m "Ready for deployment"
-git push origin main
-```
-
-2. **Create New Web Service on Render**
-- Connect your GitHub repository
-- Configure:
-  - **Build Command**: `npm run install-all && npm run build`
-  - **Start Command**: `npm start`
-  - **Environment**: Node
-
-3. **Deploy**
-Wait 5-10 minutes for build to complete
-
-Your game will be live at: `https://your-app-name.onrender.com`
-
-## 🎮 Game Controls
-
-- **Host Powers** (waiting room):
-  - Change deck type
-  - Select starting dealer
-  - Kick players
-  - Start game
-  
-- **Host Powers** (between rounds):
-  - Reassign dealer
-
-- **All Players**:
-  - Bet during betting phase
-  - Play cards during playing phase
-  - Hand winner continues to next hand
-
-## 📱 Browser Support
-
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
-
-## 🐛 Known Issues
-
-- Free tier on Render sleeps after 15min inactivity (wakes in ~30sec)
-
-## 🤝 Contributing
-
-Contributions welcome! Please open an issue or submit a pull request.
-
-## 📄 License
-
-MIT License
-
-## 👥 Authors
-
-Your Name - [Your GitHub](https://github.com/yourusername)
-
-## 🙏 Acknowledgments
-
-- Card game design inspired by traditional betting card games
-- Built with React, Socket.IO, and Tailwind CSS
-
----
-
-**Have fun playing! 🎴**
+Tu Nombre - [https://github.com/Unai2310]

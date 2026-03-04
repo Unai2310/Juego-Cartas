@@ -7,13 +7,21 @@ const cors = require('cors');
 const app = express();
 const httpServer = http.createServer(app);
 
-app.use(cors());
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 
 const io = new Server(httpServer, {
     cors: {
-        origin: "*",
+        origin: true,
+        credentials: true,
         methods: ["GET", "POST"]
-    }
+    },
+    transports: ['websocket', 'polling'],
+    allowEIO3: true,
+    pingTimeout: 60000,
+    pingInterval: 25000
 });
 
 const PORT = process.env.PORT || 3001;
@@ -345,6 +353,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });

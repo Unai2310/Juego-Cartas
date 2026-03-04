@@ -8,7 +8,7 @@
     "dev:server": "node server/server.js",
     "dev:client": "cd client && vite",
     "install-client": "cd client && npm install",
-    "build": "npm run install-client && cd client && npx vite build",
+    "build": "npm run install-client && cd client && npm run build && node ../scripts/copy-cards.js",
     "start": "node server/server.js"
   },
   "keywords": [

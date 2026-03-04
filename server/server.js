@@ -18,15 +18,13 @@ const io = new Server(httpServer, {
         credentials: true,
         methods: ["GET", "POST"]
     },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     allowEIO3: true,
     pingTimeout: 60000,
     pingInterval: 25000
 });
 
 const PORT = process.env.PORT || 3001;
-
-app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // Guardar partidas activas: gameCode -> Game instance
 const games = new Map();
@@ -37,7 +35,7 @@ function generateGameCode() {
 }
 
 io.on('connection', (socket) => {
-    //console.log('User connected:', socket.id);
+    console.log('User connected:', socket.id);
 
     let currentGameCode = null;
 
@@ -232,7 +230,7 @@ io.on('connection', (socket) => {
         try {
             // Comprobar si la partida ha acabado
             if (game.currentPhase === 'gameEnd') {
-                //console.log('Game ended, notifying players');
+                console.log('Game ended, notifying players');
                 io.to(currentGameCode).emit('gameEnded');
                 games.delete(currentGameCode);
                 return;
@@ -250,46 +248,46 @@ io.on('connection', (socket) => {
 
     // Resetear y jugar de nuevo (Boton Jugar de nuevo)
     socket.on('restartGame', () => {
-        //console.log('Restart game event received from:', socket.id);
+        console.log('Restart game event received from:', socket.id);
 
         if (!currentGameCode) {
-            //console.log('No current game code');
+            console.log('No current game code');
             return;
         }
 
         const game = games.get(currentGameCode);
         if (!game) {
-            //console.log('Game not found');
+            console.log('Game not found');
             return;
         }
 
-        //console.log('Creator ID:', game.creatorId, 'Socket ID:', socket.id);
+        console.log('Creator ID:', game.creatorId, 'Socket ID:', socket.id);
 
         // Comprobar que el unico que puede resetear es el creador de sala
         if (socket.id !== game.creatorId) {
-            //console.log('Not the creator, rejecting');
+            console.log('Not the creator, rejecting');
             socket.emit('error', 'Only the host can restart the game');
             return;
         }
 
         try {
-            //console.log('Restarting game...');
+            console.log('Restarting game...');
             game.restartGame();
 
             // Mandar actualización a jugadores de la partida
             game.playerOrder.forEach(playerId => {
                 io.to(playerId).emit('gameState', game.getGameState(playerId));
             });
-            //console.log('Game restarted successfully');
+            console.log('Game restarted successfully');
         } catch (error) {
-            //console.log('Error restarting:', error);
+            console.log('Error restarting:', error);
             socket.emit('error', error.message);
         }
     });
 
     // Tratamiento de la desconexion
     socket.on('disconnect', () => {
-        //console.log('User disconnected:', socket.id);
+        console.log('User disconnected:', socket.id);
 
         if (currentGameCode) {
             const game = games.get(currentGameCode);
@@ -300,7 +298,7 @@ io.on('connection', (socket) => {
                 const socketsInRoom = io.sockets.adapter.rooms.get(currentGameCode);
 
                 if (!socketsInRoom || socketsInRoom.size === 0) {
-                    //console.log(`Deleting empty game: ${currentGameCode}`);
+                    console.log(`Deleting empty game: ${currentGameCode}`);
                     games.delete(currentGameCode);
                 } else {
                     // Mandar actualización a jugadores de la partida
@@ -316,22 +314,22 @@ io.on('connection', (socket) => {
 
     // Echar a un jugador
     socket.on('kickPlayer', (targetId, callback) => {
-        //console.log('Kick event received. Target:', targetId, 'From:', socket.id);
+        console.log('Kick event received. Target:', targetId, 'From:', socket.id);
 
         if (!currentGameCode) {
-            //console.log('No current game code');
+            console.log('No current game code');
             return;
         }
 
         const game = games.get(currentGameCode);
         if (!game) {
-            //console.log('Game not found');
+            console.log('Game not found');
             return;
         }
 
         try {
             const kickedName = game.kickPlayer(socket.id, targetId);
-            //console.log('Player kicked successfully:', kickedName);
+            console.log('Player kicked successfully:', kickedName);
 
             // Notify the kicked player
             io.to(targetId).emit('youWereKicked');
@@ -343,11 +341,13 @@ io.on('connection', (socket) => {
 
             callback({ success: true, kickedName });
         } catch (error) {
-            //console.log('Error kicking player:', error.message);
+            console.log('Error kicking player:', error.message);
             callback({ success: false, error: error.message });
         }
     });
 });
+
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));

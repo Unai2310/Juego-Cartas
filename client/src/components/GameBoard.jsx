@@ -28,6 +28,18 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
     }
 
     const renderCard = (card) => {
+
+        if (card.value === '?' && card.suit === '?') {
+            return (
+                <img
+                    src="/cards/back.png"
+                    alt="Hidden card"
+                    className="rounded-lg shadow-lg"
+                    style={{ width: 'auto', height: '8rem' }}
+                />
+            );
+        }
+
         let filename;
 
         if (gameState.deckType === 'spanish') {
@@ -39,26 +51,16 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         }
 
         console.log('Trying to load:', `/cards/${filename}`);
+        
+        return (
+            <img
+                src={'/cards/${filename}'}
+                alt={`${card.value} of ${card.suit}`}
+                className="rounded-lg shadow-lg"
+                style={{ width: 'auto', height: '8rem' }}
+            />
+        );
 
-        if (card.value === '?' && card.suit === '?') {
-            return (
-                <img
-                    src="/cards/back.png"
-                    alt="Hidden card"
-                    className="rounded-lg shadow-lg"
-                    style={{ width: 'auto', height: '8rem' }}
-                />
-            );
-        } else {
-            return (
-                <img
-                    src={"/cards/${filename}"}
-                    alt={`${card.value} of ${card.suit}`}
-                    className="rounded-lg shadow-lg"
-                    style={{ width: 'auto', height: '8rem' }}
-                />
-            );
-        }
 
     }
 

@@ -1,9 +1,8 @@
-const path = require('path');
 const express = require('express');
-const { createServer } = require('http');
-const { Server } = require('socket.io');
+const http = require('http');
+const socketIo = require('socket.io');
+const path = require('path');
 const cors = require('cors');
-const Game = require('./game');
 
 const app = express();
 app.use(cors());
@@ -11,16 +10,14 @@ app.use(cors());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:5173", // Root URL servidor
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
 
-app.use(express.static(path.join(__dirname, '../client/dist')));
+const PORT = process.env.PORT || 3001;
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // Guardar partidas activas: gameCode -> Game instance
 const games = new Map();
@@ -343,7 +340,10 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+
 httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

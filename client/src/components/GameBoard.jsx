@@ -32,7 +32,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         if (card.value === '?' && card.suit === '?') {
             return (
                 <img
-                    src="/cards/back.png"
+                    src="/cards/back.PNG"
                     alt="Hidden card"
                     className="rounded-lg shadow-lg"
                     style={{ width: 'auto', height: '8rem' }}
@@ -43,7 +43,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         let filename;
 
         if (gameState.deckType === 'spanish') {
-            filename = `${card.value}${card.suit}.png`;
+            filename = `${card.value}${card.suit}.PNG`;
         } else {
             const suitMap = { '♥': 'H', '♦': 'D', '♣': 'C', '♠': 'S' };
             const valueMap = { 'A': 'A', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10', 'J': 'J', 'Q': 'Q', 'K': 'K' };
@@ -51,10 +51,10 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         }
 
         console.log('Trying to load:', `/cards/${filename}`);
-        
+
         return (
             <img
-                src={'/cards/${filename}'}
+                src={`/cards/${filename}`}
                 alt={`${card.value} of ${card.suit}`}
                 className="rounded-lg shadow-lg"
                 style={{ width: 'auto', height: '8rem' }}

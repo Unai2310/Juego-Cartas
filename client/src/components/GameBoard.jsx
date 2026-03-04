@@ -38,6 +38,8 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
             filename = `${valueMap[card.value]}${suitMap[card.suit]}.png`;
         }
 
+        console.log('Trying to load:', `/cards/${filename}`);
+
         if (card.value === '?' && card.suit === '?') {
             return (
                 <img

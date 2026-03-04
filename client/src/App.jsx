@@ -3,7 +3,7 @@ import { io } from 'socket.io-client'
 import Lobby from './components/Lobby'
 import GameBoard from './components/GameBoard'
 
-const socket = io('http://localhost:3000')
+const socket = io(import.meta.env.PROD ? window.location.origin : 'http://localhost:3001')
 
 function App() {
     const [gameState, setGameState] = useState(null)

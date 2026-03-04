@@ -20,7 +20,7 @@ class Game {
         this.lastRoundDealerId = null;
         this.deckType = settings.deckType || 'poker';
         this.settings = {
-            startingLives: settings.startingLives || 1,
+            startingLives: settings.startingLives || 5,
             deckType: settings.deckType || 'poker',
             ...settings
         };

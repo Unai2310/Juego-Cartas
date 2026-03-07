@@ -117,7 +117,7 @@ function Lobby({ playerName, setPlayerName, gameCode, setGameCode, createGame, j
                                                     <div className="mt-1 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mx-auto">2</div>
                                                 </div>
                                                 <div className="text-center">
-                                                    <div className="text-xs mb-1">Ósacar</div>
+                                                    <div className="text-xs mb-1">Óscar</div>
                                                     <div className="bg-white border-2 border-gray-400 rounded px-2 py-3 font-bold text-xl">7♦</div>
                                                     <div className="mt-1 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs mx-auto">3</div>
                                                 </div>
@@ -128,7 +128,7 @@ function Lobby({ playerName, setPlayerName, gameCode, setGameCode, createGame, j
                                                 </div>
                                             </div>
                                             <div className="text-center mt-3 p-2 bg-green-50 rounded border border-green-500">
-                                                <div className="text-sm font-bold text-green-700">🏆 Luis gana con K (Rey es la carta más alta más antigua)</div>
+                                                <div className="text-sm font-bold text-green-700">🏆 Raúl gana con K (Rey es la carta más alta más antigua)</div>
                                             </div>
                                         </div>
                                     </div>
@@ -143,20 +143,20 @@ function Lobby({ playerName, setPlayerName, gameCode, setGameCode, createGame, j
                                             <div className="text-sm font-semibold text-purple-700 mb-2">Resultados:</div>
                                             <div className="space-y-2">
                                                 <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                                                    <span className="font-semibold text-sm">Ana: Apostó 2, Ganó 2</span>
+                                                    <span className="font-semibold text-sm">Iván: Apostó 2, Ganó 2</span>
                                                     <span className="text-green-700 font-bold">✓ 0 vidas</span>
                                                 </div>
                                                 <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-                                                    <span className="font-semibold text-sm">Luis: Apostó 1, Ganó 3</span>
+                                                    <span className="font-semibold text-sm">Raúl: Apostó 1, Ganó 3</span>
                                                     <span className="text-red-700 font-bold">✗ 2 vidas</span>
                                                 </div>
                                                 <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-                                                    <span className="font-semibold text-sm">María: Apostó 0, Ganó 1</span>
+                                                    <span className="font-semibold text-sm">Silvia: Apostó 0, Ganó 1</span>
                                                     <span className="text-red-700 font-bold">✗ 1 vida</span>
                                                 </div>
                                             </div>
                                             <div className="text-xs text-center mt-2 text-gray-600">
-                                                Ejemplo: Luis apostó 1 pero ganó 3 → |1 - 3| = 2 vidas perdidas
+                                                Ejemplo: Raúl apostó 1 pero ganó 3 → |1 - 3| = 2 vidas perdidas
                                             </div>
                                         </div>
 

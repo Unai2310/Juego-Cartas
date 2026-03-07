@@ -889,36 +889,56 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
     }
 
     const renderGameEnd = () => {
-        const winner = gameState.players.find(p => p.lives > 0)
+        const winner = gameState.players.find(p => p.lives > 0);
+
         return (
-            <div className="text-center ml-64">
-                <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h2 className="text-3xl font-bold mb-4 text-gray-800">Fin de la Partida!</h2>
-                    {winner && (
-                        <div className="text-lg text-green-600 font-bold mb-6">
-                            🎉 {winner.name} Gana! 🎉
+            <div className="ml-64">
+                {renderPlayers()}
+
+                <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <h2 className="text-3xl font-bold mb-4 text-gray-800">¡Juego Terminado!</h2>
+
+                    {gameState.lastCompletedTrick && gameState.lastCompletedTrick.length > 0 && (
+                        <div className="mb-6">
+                            <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
+                                <div className="text-lg font-semibold text-green-800">
+                                    🏆 Última mano ganada por: {gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}
+                                </div>
+                            </div>
+
+                            <h3 className="text-xl font-bold mb-3 text-gray-800">Mano Final:</h3>
+                            <div className="flex gap-4 flex-wrap justify-center mb-6">
+                                {gameState.lastCompletedTrick.map((play, index) => {
+                                    const player = gameState.players.find(p => p.id === play.playerId);
+                                    return (
+                                        <div key={index} className="text-center">
+                                            <div className="text-sm font-semibold mb-2">{player?.name}</div>
+                                            {renderCard(play.card)}
+                                            <div className="mt-2 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs mx-auto shadow-lg">
+                                                {index + 1}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
 
-                    {renderPlayers()}
-
-                    <div className="mt-6">
-                        {gameState.isCreator ? (
-                            <button
-                                onClick={restartGame}
-                                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-base transition duration-200"
-                            >
-                                Jugar Otra Vez!
-                            </button>
-                        ) : (
-                            <div className="text-gray-600 text-base">
-                                Esperando a que el host reinicie la partida...
-                            </div>
-                        )}
+                    <div className="text-4xl font-bold text-purple-600 mb-4">
+                        🎉 ¡{winner?.name} ha ganado! 🎉
                     </div>
+
+                    {gameState.isCreator && (
+                        <button
+                            onClick={restartGame}
+                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-xl transition duration-200"
+                        >
+                            Jugar de Nuevo
+                        </button>
+                    )}
                 </div>
             </div>
-        )
+        );
     }
 
     return (

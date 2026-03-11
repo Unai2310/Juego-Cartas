@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import Tutorial from './Tutorial'
 
 function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, playCard, continueToNextRound, continueToNextTrick, restartGame, kickPlayer, changeDealer, changeDeckType, error }) {
     const [betInput, setBetInput] = useState('')
     const [selectedDealer, setSelectedDealer] = useState('')
     const [dealerSelectionMode, setDealerSelectionMode] = useState('random')
     const [selectedStartingDealer, setSelectedStartingDealer] = useState('')
+    const [showTutorial, setShowTutorial] = useState(false)
 
     if (!gameState) {
         return (
@@ -50,8 +52,6 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
             filename = `${valueMap[card.value]}${suitMap[card.suit]}.PNG`;
         }
 
-        console.log('Trying to load:', `/cards/${filename}`);
-
         return (
             <img
                 src={`/cards/${filename}`}
@@ -71,7 +71,13 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         let previousLives = sortedPlayers[0]?.lives;
 
         return (
-            <div className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-purple-700 to-purple-900 shadow-2xl p-4 overflow-y-auto">
+            <div className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-purple-700 to-purple-900 shadow-2xl p-4 overflow-y-auto z-10">
+                <button
+                    onClick={() => setShowTutorial(true)}
+                    className="fixed top-4 right-24 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200 z-50"
+                >
+                    📖 Como Jugar
+                </button>
                 <h2 className="text-2xl font-bold mb-4 text-white text-center">Jugadores</h2>
 
                 <div className="space-y-3">
@@ -103,7 +109,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
                                 {/* Informacion jugador */}
                                 <div className="ml-4">
-                                    <div className={`font-bold text-lg mb-1 ${isMe ? 'text-purple-900' : 'text-gray-800'}`}>
+                                    <div className={`font-bold text-lg mb-1 break-words ${isMe ? 'text-purple-900' : 'text-gray-800'}`}>
                                         {player.name}
                                         {player.id === gameState.creatorId && ' 👑'}
                                         <div className="text-xs text-purple-600 font-semibold">{isDealer && ' Dealer'}</div>
@@ -162,6 +168,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                         );
                     })}
                 </div>
+                <Tutorial showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
             </div>
         );
     }
@@ -369,14 +376,14 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
                                     return (
                                         <div key={player.id} className="text-center">
-                                            <div className="text-sm font-semibold mb-2">
-                                                {player.name} {isMe && '(Tú)'}
+                                            <div className="text-sm font-semibold mb-2 text-center flex items-center justify-center gap-1">
+                                                <span className="truncate max-w-[90px]">{player.name}</span>
                                             </div>
                                             {/* Caja de apuestas */}
                                             <div className={`rounded-lg shadow-lg mb-2 border-2 flex items-center justify-center ${hasBet
                                                 ? 'bg-white-50 border-green-500'
                                                 : 'bg-white border-dashed border-gray-400 opacity-60'
-                                                }`} style={{ width: '3.75rem', height: '.5.25rem' }}>
+                                                }`} style={{ width: '5.75rem', height: '.7.25rem' }}>
                                                 {hasBet ? (
                                                     <div className="text-3xl font-bold text-black-700">{player.bet}</div>
                                                 ) : (
@@ -387,6 +394,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                             <div className="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm mx-auto mb-2 shadow-lg">
                                                 {index + 1}
                                             </div>
+                                            {isMe && '(Tú)'}
                                         </div>
                                     );
                                 });
@@ -443,8 +451,8 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                     const hasBet = player.oneCardBet !== undefined;
                                     return (
                                         <div key={player.id} className="text-center">
-                                            <div className="text-sm font-semibold mb-2">
-                                                {player.name} {isMe && '(Tú)'}
+                                            <div className="text-sm font-semibold mb-2 text-center flex items-center justify-center gap-1">
+                                                <span className="truncate max-w-[90px]">{player.name}</span>
                                             </div>
                                             {isMe ? (
                                                 // Carta oculta
@@ -470,6 +478,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                             <div className="mt-2 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm mx-auto shadow-lg">
                                                 {index + 1}
                                             </div>
+                                            {isMe && '(Tú)'}
                                         </div>
                                     );
                                 });
@@ -540,8 +549,8 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
                                         return (
                                             <div key={player.id} className="text-center">
-                                                <div className="text-sm font-semibold mb-2">
-                                                    {player.name} {isMe && '(Tú)'}
+                                                <div className="text-sm font-semibold mb-2 text-center flex items-center justify-center gap-1">
+                                                    <span className="truncate max-w-[90px]">{player.name}</span>
                                                 </div>
                                                 {playedCard ? (
                                                     // Jugar Carta
@@ -556,6 +565,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                                 <div className="mt-2 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm mx-auto shadow-lg">
                                                     {index + 1}
                                                 </div>
+                                                {isMe && '(Tú)'}
                                             </div>
                                         );
                                     });
@@ -672,8 +682,8 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     {/* Anuncio del jugador ganador de la ronda */}
                     {gameState.lastTrickWinner && (
                         <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
-                            <div className="text-base font-semibold text-green-800">
-                                🏆 {gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name} ganó la mano!
+                            <div className="text-base font-semibold text-green-800 flex items-center justify-center gap-1">
+                                🏆 <span className="truncate max-w-[90px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
                             </div>
                         </div>
                     )}
@@ -685,7 +695,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                             const player = gameState.players.find(p => p.id === play.playerId);
                             return (
                                 <div key={index} className="text-center">
-                                    <div className="text-sm font-semibold mb-2">{player?.name}</div>
+                                    <div className="text-sm font-semibold mb-2 truncate max-w-[90px]">{player?.name}</div>
                                     {renderCard(play.card)}
                                     <div className="mt-2 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm mx-auto shadow-lg">
                                         {index + 1}
@@ -698,7 +708,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     {/* Mostrar estado de apuestas y victorias */}
                     <div className="bg-gray-50 rounded-lg p-4 mb-6">
                         <h3 className="text-base font-bold mb-3 text-gray-700">Estado Actual:</h3>
-                        <div className="space-y-2 text-left max-w-md mx-auto">
+                        <div className="space-y-2 text-left max-w-xl mx-auto">
                             {gameState.players
                                 .filter(p => p.lives > 0)
                                 .map(player => {
@@ -708,7 +718,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                     return (
                                         <div key={player.id} className="px-4 py-2 bg-white rounded">
                                             <div className="flex justify-between items-center">
-                                                <span className="font-semibold">{player.name}</span>
+                                                <span className="font-semibold truncate max-w-[150px]">{player.name}</span>
                                                 <div className="text-sm text-gray-600 flex gap-4">
                                                     <span>Apuesta: <span className="font-semibold">{bet}</span></span>
                                                     <span className="text-gray-300">|</span>
@@ -750,9 +760,9 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                         <div className="mb-6">
                             {/* Anuncio del jugador ganador de la ronda */}
                             {gameState.lastTrickWinner && (
-                                <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500">
-                                    <div className="text-base font-semibold text-green-800 text-center">
-                                        🏆 {gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name} ganó la mano!
+                                <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
+                                    <div className="text-lg font-semibold text-green-800 flex items-center justify-center gap-1">
+                                        🏆 <span className="truncate max-w-[90px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
                                     </div>
                                 </div>
                             )}
@@ -778,7 +788,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                         const player = gameState.players.find(p => p.id === play.playerId);
                                         return (
                                             <div key={play.playerId} className="text-center">
-                                                <div className="text-sm font-semibold mb-2">{player?.name}</div>
+                                                <div className="text-sm font-semibold mb-2 truncate max-w-[90px]">{player?.name}</div>
                                                 {renderCard(play.card)}
                                                 <div className="mt-2 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm mx-auto shadow-lg">
                                                     {index + 1}
@@ -793,7 +803,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     {gameState.lastRoundLifeLosses && Object.keys(gameState.lastRoundLifeLosses).length > 0 && (
                         <div className="mb-6 bg-gray-50 rounded-lg p-4">
                             <h3 className="text-base font-bold mb-3 text-gray-700">Vidas perdidas esta ronda:</h3>
-                            <div className="space-y-2 text-left max-w-md mx-auto">
+                            <div className="space-y-2 text-left max-w-xl mx-auto">
                                 {gameState.players
                                     .filter(p => gameState.lastRoundLifeLosses[p.id] !== undefined)
                                     .map(player => {
@@ -806,8 +816,10 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
                                         return (
                                             <div key={player.id} className="px-4 py-3 bg-white rounded">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <span className="font-semibold text-base">{player.name}</span>
+                                                <div className="grid grid-cols-[150px_1fr_auto] gap-4 items-center">
+                                                    <span className="font-semibold text-base truncate">
+                                                        {player.name}
+                                                    </span>
                                                     {player.lives > 0 && (
                                                         isOneCardRound ? (
                                                             <>
@@ -901,8 +913,8 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     {gameState.lastCompletedTrick && gameState.lastCompletedTrick.length > 0 && (
                         <div className="mb-6">
                             <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
-                                <div className="text-lg font-semibold text-green-800">
-                                    🏆 Última mano ganada por: {gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}
+                                <div className="text-lg font-semibold text-green-800 flex items-center justify-center gap-1">
+                                    🏆 Última mano ganada por: <span className="truncate max-w-[90px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span>
                                 </div>
                             </div>
 
@@ -912,7 +924,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                     const player = gameState.players.find(p => p.id === play.playerId);
                                     return (
                                         <div key={index} className="text-center">
-                                            <div className="text-sm font-semibold mb-2">{player?.name}</div>
+                                            <div className="text-sm font-semibold mb-2 truncate max-w-[90px]">{player?.name}</div>
                                             {renderCard(play.card)}
                                             <div className="mt-2 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs mx-auto shadow-lg">
                                                 {index + 1}
@@ -924,8 +936,8 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                         </div>
                     )}
 
-                    <div className="text-4xl font-bold text-purple-600 mb-4">
-                        🎉 ¡{winner?.name} ha ganado! 🎉
+                    <div className="text-4xl font-bold text-purple-600 mb-4 flex items-center justify-center gap-1">
+                        🎉 ¡<span className="truncate max-w-[200px]">{winner?.name}</span> ha ganado! 🎉
                     </div>
 
                     {gameState.isCreator && (

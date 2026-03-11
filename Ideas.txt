@@ -1,1 +1,2 @@
--Ver resultado de la ultima ronda antes de acabar
+-Echar a alguien durante la partida
+-Usuarios y tabla de "ranked"

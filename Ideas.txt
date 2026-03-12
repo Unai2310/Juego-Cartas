@@ -1,2 +1,5 @@
 -Echar a alguien durante la partida
+-Apuesta de cada uno debajo del numero morado
+-Añadir y quitar vidas
+-Numero de vidas al empezar ajustable
 -Usuarios y tabla de "ranked"

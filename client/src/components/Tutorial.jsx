@@ -146,7 +146,7 @@ function Tutorial({ showTutorial, setShowTutorial }) {
                                             <span className="text-red-700 font-bold">✗ 2 vidas</span>
                                         </div>
                                         <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-                                            <span className="font-semibold text-sm">Silvia: Apostó 0, Ganó 1</span>
+                                            <span className="font-semibold text-sm">Juanjo: Apostó 0, Ganó 1</span>
                                             <span className="text-red-700 font-bold">✗ 1 vida</span>
                                         </div>
                                     </div>

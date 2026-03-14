@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import Tutorial from './Tutorial'
+import Rankings from './Rankings'
 
-function Lobby({ playerName, setPlayerName, gameCode, setGameCode, createGame, joinGame, deckType, setDeckType, error }) {
+function Lobby({ playerName, setPlayerName, gameCode, setGameCode, createGame, joinGame, deckType, setDeckType, error, socket }) {
     const [showTutorial, setShowTutorial] = useState(false)
+    const [showRankings, setShowRankings] = useState(false)
 
     return (
         <div className="min-h-screen flex items-center justify-center">
@@ -109,8 +111,15 @@ function Lobby({ playerName, setPlayerName, gameCode, setGameCode, createGame, j
                 >
                     📖 Cómo Jugar
                 </button>
+                <button
+                        onClick={() => setShowRankings(true)}
+                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded mb-4 transition duration-200"
+                    >
+                        🏆 Rankings
+                    </button>
             </div>
             <Tutorial showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
+            <Rankings showRankings={showRankings} setShowRankings={setShowRankings} socket={socket} />
         </div>
     )
 }

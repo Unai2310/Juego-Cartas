@@ -3,7 +3,8 @@ const http = require('http');
 const { Server } = require('socket.io');;
 const path = require('path');
 const cors = require('cors');
-const Game = require('./game'); 
+const Game = require('./game');
+const rankingsManager = require('./rankingsManager');
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -247,6 +248,31 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Gestion de vidas
+    socket.on('adjustPlayerLives', ({ playerId, change }, callback) => {
+        if (!currentGameCode) {
+            return callback({ success: false, error: 'No estas en partida' });
+        }
+
+        const game = games.get(currentGameCode);
+        if (!game) {
+            return callback({ success: false, error: 'Partida no encontrada' });
+        }
+
+        try {
+            game.adjustPlayerLives(socket.id, playerId, change);
+
+            // Notificar a todos los jugadores
+            game.playerOrder.forEach(pId => {
+                io.to(pId).emit('gameState', game.getGameState(pId));
+            });
+
+            callback({ success: true });
+        } catch (error) {
+            callback({ success: false, error: error.message });
+        }
+    });
+
     // Resetear y jugar de nuevo (Boton Jugar de nuevo)
     socket.on('restartGame', () => {
         console.log('Restart game event received from:', socket.id);
@@ -343,6 +369,64 @@ io.on('connection', (socket) => {
             callback({ success: true, kickedName });
         } catch (error) {
             console.log('Error kicking player:', error.message);
+            callback({ success: false, error: error.message });
+        }
+    });
+
+    // Comprobar si existe el nombre en el ranking
+    socket.on('checkRankingName', (name, callback) => {
+        try {
+            const exists = rankingsManager.nameExists(name);
+            callback({ success: true, exists });
+        } catch (error) {
+            callback({ success: false, error: error.message });
+        }
+    });
+
+    // Comprobar contraseña para subir registro
+    socket.on('verifyRankingPassword', ({ name, password }, callback) => {
+        try {
+            const valid = rankingsManager.verifyPassword(name, password);
+            callback({ success: true, valid });
+        } catch (error) {
+            callback({ success: false, error: error.message });
+        }
+    });
+
+    // Actualizar ranking
+    socket.on('submitWinToRankings', ({ name, password, winnerPlayerId }, callback) => {
+        if (!currentGameCode) {
+            return callback({ success: false, error: 'No estas en partida' });
+        }
+
+        const game = games.get(currentGameCode);
+        if (!game) {
+            return callback({ success: false, error: 'Partida no encontrada' });
+        }
+
+        if (socket.id !== winnerPlayerId) {
+            return callback({ success: false, error: 'Solo el ganador puede subir su resultado' });
+        }
+
+        const activePlayers = game.getActivePlayers();
+        if (activePlayers.length !== 1 || activePlayers[0] !== winnerPlayerId) {
+            return callback({ success: false, error: 'Partida no acabada correctamente' });
+        }
+
+        try {
+            rankingsManager.addWin(name, password);
+            callback({ success: true });
+        } catch (error) {
+            callback({ success: false, error: error.message });
+        }
+    });
+
+    // Obtener top rankings
+    socket.on('getTopRankings', (limit, callback) => {
+        try {
+            const rankings = rankingsManager.getTopRankings(limit || 10);
+            callback({ success: true, rankings });
+        } catch (error) {
             callback({ success: false, error: error.message });
         }
     });

@@ -207,6 +207,37 @@ class Game {
         this.currentPlayerIndex = (dealerIdx + 1) % activePlayers.length;
     }
 
+    adjustPlayerLives(hostId, playerId, change) {
+        if (hostId !== this.creatorId) {
+            throw new Error('Solo el host puede cambiar las vidas');
+        }
+
+        // Only during round end
+        if (this.currentPhase !== 'roundEnd') {
+            throw new Error('Solo le puede actualizar entre rondas');
+        }
+
+        const player = this.players.get(playerId);
+        if (!player) {
+            throw new Error('Jugador no encontrado');
+        }
+
+        // Calculate new lives
+        const newLives = player.lives + change;
+
+        // Don't allow negative lives
+        if (newLives < 0) {
+            throw new Error('No puedes poner menos de 0 vidas');
+        }
+
+        if (newLives > 5) {
+            throw new Error('No puedes poner mas de 5 vidas');
+        }
+
+        // Update lives
+        player.lives = newLives;
+    }
+
     createDeck() {
         const deck = [];
 

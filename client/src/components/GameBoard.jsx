@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Tutorial from './Tutorial'
+import Rankings from './Rankings'
 
 function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, playCard, continueToNextRound, continueToNextTrick, restartGame, kickPlayer, changeDealer, changeDeckType, error }) {
     const [betInput, setBetInput] = useState('')
@@ -7,6 +8,13 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
     const [dealerSelectionMode, setDealerSelectionMode] = useState('random')
     const [selectedStartingDealer, setSelectedStartingDealer] = useState('')
     const [showTutorial, setShowTutorial] = useState(false)
+
+    //Ranking
+    const [showRankingSubmit, setShowRankingSubmit] = useState(false)
+    const [rankingName, setRankingName] = useState('')
+    const [rankingError, setRankingError] = useState('')
+    const [rankingSuccess, setRankingSuccess] = useState(false)
+    const [showRankings, setShowRankings] = useState(false)
 
     if (!gameState) {
         return (
@@ -64,6 +72,14 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
     }
 
+    const adjustPlayerLives = (playerId, change) => {
+        socket.emit('adjustPlayerLives', { playerId, change }, (response) => {
+            if (!response.success) {
+                console.error('Failed to adjust lives:', response.error);
+            }
+        });
+    }
+
     const renderPlayers = () => {
         const sortedPlayers = [...gameState.players].sort((a, b) => b.lives - a.lives);
 
@@ -72,12 +88,20 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
         return (
             <div className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-purple-700 to-purple-900 shadow-2xl p-4 overflow-y-auto z-10">
-                <button
-                    onClick={() => setShowTutorial(true)}
-                    className="fixed top-4 right-24 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200 z-50"
-                >
-                    📖 Como Jugar
-                </button>
+                 <div className="fixed top-10 right-10 flex gap-2 z-40">
+                    <button
+                        onClick={() => setShowTutorial(true)}
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200 z-50"
+                    >
+                        📖 Cómo Jugar
+                    </button>
+                    <button
+                        onClick={() => setShowRankings(true)}
+                        className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200 z-50"
+                    >
+                        🏆 Rankings
+                    </button>
+                </div>
                 <h2 className="text-2xl font-bold mb-4 text-white text-center">Jugadores</h2>
 
                 <div className="space-y-3">
@@ -135,40 +159,13 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                             Expulsar
                                         </button>
                                     )}
-
-                                    {(gameState.currentPhase === 'betting' || gameState.currentPhase === 'playing' || gameState.currentPhase === 'trickEnd') && player.bet !== undefined && (
-                                        <div className="text-sm flex gap-2">
-                                            <span>
-                                                <span className="text-gray-600">Apuesta:</span>{' '}
-                                                <span className="font-bold text-purple-700">{player.bet}</span>
-                                            </span>
-                                            {gameState.currentPhase === 'playing' && player.wins !== undefined && (
-                                                <>
-                                                    <span className="text-gray-400">|</span>
-                                                    <span>
-                                                        <span className="text-gray-600">Victorias:</span>{' '}
-                                                        <span className="font-bold text-green-700">{player.wins}</span>
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* 1-card bet */}
-                                    {gameState.currentPhase === 'oneCardBetting' && player.oneCardBet && (
-                                        <div className="text-sm">
-                                            <span className="text-gray-600">Apuesta:</span>{' '}
-                                            <span className={`font-bold ${player.oneCardBet === 'win' ? 'text-green-700' : 'text-red-700'}`}>
-                                                {player.oneCardBet === 'win' ? 'Gano' : 'Pierdo'}
-                                            </span>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         );
                     })}
                 </div>
                 <Tutorial showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
+                <Rankings showRankings={showRankings} setShowRankings={setShowRankings} socket={socket} />
             </div>
         );
     }
@@ -250,12 +247,13 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                     <select
                                         value={selectedStartingDealer}
                                         onChange={(e) => setSelectedStartingDealer(e.target.value)}
-                                        className="w-full border-2 border-purple-300 rounded-lg px-4 py-2 font-semibold"
+                                        className="w-full border-2 border-purple-300 rounded-lg px-4 py-2 font-semibold text-sm truncate"
+                                        style={{ maxWidth: '100%' }}
                                     >
                                         <option value="">Seleccionar jugador...</option>
                                         {gameState.players.map(player => (
-                                            <option key={player.id} value={player.id}>
-                                                {player.name}
+                                            <option key={player.id} value={player.id} className="truncate">
+                                                {player.name.length > 80 ? player.name.substring(0, 80) + '...' : player.name}
                                             </option>
                                         ))}
                                     </select>
@@ -526,6 +524,11 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     <div className="text-base mb-4 text-gray-600">
                         Fase de juego
                     </div>
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                        <div className="text-sm font-semibold text-blue-800">
+                            Apuestas totales: {gameState.players.reduce((sum, p) => sum + (p.bet !== undefined ? p.bet : 0), 0)} Victorias para {gameState.currentRound} cartas
+                        </div>
+                    </div>
 
                     {/* Orden de juego - Mostrar espacios de juego rellenado al jugar */}
                     {(!gameState.lastTrickWinner || gameState.currentTrick.length > 0) && (
@@ -546,6 +549,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                         const isMe = player.id === gameState.myPlayerId;
                                         // Comprobar si el jugador ha jugado este turno
                                         const playedCard = gameState.currentTrick.find(t => t.playerId === player.id);
+                                        const hasBet = player.bet !== undefined;
 
                                         return (
                                             <div key={player.id} className="text-center">
@@ -561,6 +565,17 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
                                                     </div>
                                                 )}
+                                                {/* Caja de apuestas */}
+                                                <div className={`rounded-lg shadow-lg border-2 flex items-center justify-center mb-2 mt-2 ${player.bet === player.wins ? 'bg-white-50 border-green-500' : 'bg-white-50 border-red-500'}`}
+                                                    style={{ width: 'auto', height: '.5.25rem' }}>
+                                                    {hasBet ? (
+                                                        <div className="text-xs font-bold text-gray-700">
+                                                            V:{player.wins}  A:{player.bet || 0}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-xl font-bold text-gray-400">-</div>
+                                                    )}
+                                                </div>
                                                 {/* Orden de juego */}
                                                 <div className="mt-2 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm mx-auto shadow-lg">
                                                     {index + 1}
@@ -579,7 +594,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                         <div className="mb-6">
                             <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
                                 <div className="text-base font-semibold text-green-800">
-                                    🏆 {gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name} gano la mano!
+                                    🏆 <span className="truncate max-w-[3000px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
                                 </div>
                             </div>
 
@@ -601,32 +616,6 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                         </div>
                                     )
                                 })}
-                            </div>
-
-                            {/* Mostrar estado de apuestas y victorias */}
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <h3 className="text-base font-bold mb-3 text-gray-700">Recuento de vidas y victorias:</h3>
-                                <div className="space-y-2 text-left max-w-md mx-auto">
-                                    {gameState.players
-                                        .filter(p => p.lives > 0)
-                                        .map(player => {
-                                            const bet = player.bet !== undefined ? player.bet : '-';
-                                            const wins = player.wins !== undefined ? player.wins : 0;
-
-                                            return (
-                                                <div key={player.id} className="px-4 py-2 bg-white rounded">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="font-semibold">{player.name}</span>
-                                                        <div className="text-sm text-gray-600 flex gap-4">
-                                                            <span>Apuesta: <span className="font-semibold">{bet}</span></span>
-                                                            <span className="text-gray-300">|</span>
-                                                            <span>Victorias: <span className="font-semibold">{wins}</span></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                </div>
                             </div>
                         </div>
                     )}
@@ -683,7 +672,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     {gameState.lastTrickWinner && (
                         <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
                             <div className="text-base font-semibold text-green-800 flex items-center justify-center gap-1">
-                                🏆 <span className="truncate max-w-[90px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
+                                🏆 <span className="truncate max-w-[3000px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
                             </div>
                         </div>
                     )}
@@ -693,42 +682,28 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     <div className="flex gap-4 flex-wrap justify-center mb-6">
                         {gameState.lastCompletedTrick.map((play, index) => {
                             const player = gameState.players.find(p => p.id === play.playerId);
+                            const hasBet = player.bet !== undefined;
                             return (
                                 <div key={index} className="text-center">
                                     <div className="text-sm font-semibold mb-2 truncate max-w-[90px]">{player?.name}</div>
                                     {renderCard(play.card)}
+                                    {/* Caja de apuestas */}
+                                    <div className={`rounded-lg shadow-lg border-2 flex items-center justify-center mb-2 mt-2 ${player.bet === player.wins ? 'bg-white-50 border-green-500' : 'bg-white-50 border-red-500'}`}
+                                        style={{ width: 'auto', height: '.5.25rem' }}>
+                                        {hasBet ? (
+                                            <div className="text-xs font-bold text-gray-700">
+                                                {player.bet}/{player.wins || 0}
+                                            </div>
+                                        ) : (
+                                            <div className="text-xl font-bold text-gray-400">-</div>
+                                        )}
+                                    </div>
                                     <div className="mt-2 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm mx-auto shadow-lg">
                                         {index + 1}
                                     </div>
                                 </div>
                             );
                         })}
-                    </div>
-
-                    {/* Mostrar estado de apuestas y victorias */}
-                    <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                        <h3 className="text-base font-bold mb-3 text-gray-700">Estado Actual:</h3>
-                        <div className="space-y-2 text-left max-w-xl mx-auto">
-                            {gameState.players
-                                .filter(p => p.lives > 0)
-                                .map(player => {
-                                    const bet = player.bet !== undefined ? player.bet : '-';
-                                    const wins = player.wins !== undefined ? player.wins : 0;
-
-                                    return (
-                                        <div key={player.id} className="px-4 py-2 bg-white rounded">
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-semibold truncate max-w-[150px]">{player.name}</span>
-                                                <div className="text-sm text-gray-600 flex gap-4">
-                                                    <span>Apuesta: <span className="font-semibold">{bet}</span></span>
-                                                    <span className="text-gray-300">|</span>
-                                                    <span>Victorias: <span className="font-semibold">{wins}</span></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                        </div>
                     </div>
 
                     {/* Boton de continuar (Solo al ganador de la mano) */}
@@ -762,7 +737,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                             {gameState.lastTrickWinner && (
                                 <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
                                     <div className="text-lg font-semibold text-green-800 flex items-center justify-center gap-1">
-                                        🏆 <span className="truncate max-w-[90px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
+                                        🏆 <span className="truncate max-w-[300px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
                                     </div>
                                 </div>
                             )}
@@ -856,12 +831,12 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                 <select
                                     value={selectedDealer}
                                     onChange={(e) => setSelectedDealer(e.target.value)}
-                                    className="border-2 border-blue-300 rounded-lg px-4 py-2"
+                                    className="flex-1 border-2 border-blue-300 rounded px-3 py-2 font-semibold text-sm max-w-xs"
                                 >
                                     <option value="">Seleccionar jugador...</option>
                                     {activePlayers.map(player => (
                                         <option key={player.id} value={player.id}>
-                                            {player.name}
+                                            {player.name.length > 100 ? player.name.substring(0, 100) + '...' : player.name}
                                         </option>
                                     ))}
                                 </select>
@@ -881,12 +856,48 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                             <div className="text-sm text-gray-600 mt-2">
                                 Repartidor actual: {activePlayers[gameState.dealerIndex]?.name}
                             </div>
+                            {/* Panel de ajuste de vidas */}
+                            {gameState.isCreator && (
+                                <div className="mt-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
+                                    <h4 className="text-base font-bold mb-3 text-blue-800">Ajustar Vidas (Host):</h4>
+                                    <div className="space-y-2">
+                                        {gameState.players.map(player => (
+                                            <div key={player.id} className="flex items-center justify-between bg-white p-3 rounded">
+                                                <span className="font-semibold truncate max-w-[150px]">
+                                                    {player.name}
+                                                </span>
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        onClick={() => adjustPlayerLives(player.id, -1)}
+                                                        disabled={player.lives <= 0}
+                                                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white font-bold w-8 h-8 rounded transition duration-200"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="font-bold text-lg min-w-[3rem] text-center">
+                                                        ❤️ {player.lives}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => adjustPlayerLives(player.id, 1)}
+                                                        className="bg-green-500 hover:bg-green-600 text-white font-bold w-8 h-8 rounded transition duration-200"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-yellow-700 mt-2">
+                                        ⚠️ Los cambios afectan inmediatamente.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
                     {gameState.isNextDealer ? (
                         <button
                             onClick={continueToNextRound}
-                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-base transition duration-200"
+                            className="bg-purple-600 hover:bg-purple-700 mt-3 text-white font-bold py-3 px-8 rounded-lg text-base transition duration-200"
                         >
                             Repartir Siguiente Ronda
                         </button>
@@ -902,6 +913,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
     const renderGameEnd = () => {
         const winner = gameState.players.find(p => p.lives > 0);
+        const isWinner = winner?.id === gameState.myPlayerId;
 
         return (
             <div className="ml-64">
@@ -914,7 +926,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                         <div className="mb-6">
                             <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
                                 <div className="text-lg font-semibold text-green-800 flex items-center justify-center gap-1">
-                                    🏆 Última mano ganada por: <span className="truncate max-w-[90px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span>
+                                    🏆 Última mano ganada por: <span className="truncate max-w-[300px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span>
                                 </div>
                             </div>
 
@@ -939,6 +951,94 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     <div className="text-4xl font-bold text-purple-600 mb-4 flex items-center justify-center gap-1">
                         🎉 ¡<span className="truncate max-w-[200px]">{winner?.name}</span> ha ganado! 🎉
                     </div>
+
+                    {/* Ranking submission button for winner */}
+                    {isWinner && !showRankingSubmit && !rankingSuccess && (
+                        <button
+                            onClick={() => setShowRankingSubmit(true)}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-lg text-xl mb-4 transition duration-200"
+                        >
+                            🏆 Añadir a Rankings
+                        </button>
+                    )}
+
+                    {/* Ranking submission form */}
+                    {isWinner && showRankingSubmit && !rankingSuccess && (
+                        <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6 mb-6 max-w-md mx-auto">
+                            <h3 className="text-xl font-bold mb-4 text-yellow-800">Añadir Victoria al Ranking</h3>
+
+                            {rankingError && (
+                                <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+                                    {rankingError}
+                                </div>
+                            )}
+
+                            <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">
+                                    Tu Nombre para el Ranking
+                                </label>
+                                <input
+                                    type="text"
+                                    value={rankingName}
+                                    onChange={(e) => setRankingName(e.target.value.toUpperCase())}
+                                    maxLength={15}
+                                    className="w-full shadow border rounded py-2 px-3 text-gray-700 uppercase font-bold text-center text-xl"
+                                    placeholder="TU NOMBRE"
+                                />
+                                <p className="text-xs mt-1 text-gray-600">
+                                    Usa el mismo nombre para acumular victorias
+                                </p>
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => {
+                                        if (!rankingName.trim()) {
+                                            setRankingError('Ingresa un nombre');
+                                            setTimeout(() => setRankingError(''), 3000);
+                                            return;
+                                        }
+
+                                        socket.emit('submitWinToRankings', {
+                                            name: rankingName.trim(),
+                                            winnerPlayerId: gameState.myPlayerId
+                                        }, (response) => {
+                                            if (response.success) {
+                                                setRankingSuccess(true);
+                                                setShowRankingSubmit(false);
+                                                setRankingName('');
+                                            } else {
+                                                setRankingError(response.error);
+                                                setTimeout(() => setRankingError(''), 3000);
+                                            }
+                                        })
+                                    }}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition duration-200"
+                                >
+                                    💾 Guardar Victoria
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowRankingSubmit(false);
+                                        setRankingError('');
+                                        setRankingName('');
+                                    }}
+                                    className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded transition duration-200"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {rankingSuccess && (
+                        <div className="bg-green-100 border-2 border-green-500 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                            <div className="text-green-800 font-bold text-lg">
+                                ✓ ¡Victoria añadida al ranking!
+                            </div>
+                        </div>
+                    )}
+
 
                     {gameState.isCreator && (
                         <button

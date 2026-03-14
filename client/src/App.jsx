@@ -131,6 +131,7 @@ function App() {
         socket.emit('restartGame')
     }
 
+
     if (!inGame) {
         return (
             <Lobby
@@ -142,6 +143,7 @@ function App() {
                 joinGame={joinGame}
                 deckType={deckType}
                 setDeckType={setDeckType}
+                socket={socket}
                 error={error}
             />
         )

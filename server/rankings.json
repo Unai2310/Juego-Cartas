@@ -1,0 +1,28 @@
+{
+  "rankings": [
+    {
+      "name": "UNAI",
+      "wins": 2,
+      "timestamps": [1773482992194, 1773482992194],
+      "lastWin": 1773482992194
+    },
+    {
+      "name": "UNAIA",
+      "wins": 1,
+      "timestamps": [1773483272733],
+      "lastWin": 1773483272733
+    },
+    {
+      "name": "YUANYO",
+      "wins": 1,
+      "timestamps": [1773483272733],
+      "lastWin": 1773483272733
+    },
+    {
+      "name": "OSCAR",
+      "wins": 1,
+      "timestamps": [1773483272733],
+      "lastWin": 1773483272733
+    }
+  ]
+}

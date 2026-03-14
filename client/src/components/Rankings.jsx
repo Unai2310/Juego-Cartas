@@ -65,12 +65,12 @@ function Rankings({ showRankings, setShowRankings, socket }) {
                                         <div
                                             onClick={() => setExpandedRank(expandedRank === entry.rank ? null : entry.rank)}
                                             className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all ${entry.rank === 1
-                                                    ? 'bg-yellow-300 text-gray-900 shadow-lg scale-105 border-4 border-yellow-500'
-                                                    : entry.rank === 2
-                                                        ? 'bg-gray-300 text-gray-900 border-4 border-gray-400'
-                                                        : entry.rank === 3
-                                                            ? 'bg-orange-400 text-gray-900 border-4 border-orange-500'
-                                                            : 'bg-white bg-opacity-90 text-gray-900'
+                                                ? 'bg-yellow-300 text-gray-900 shadow-lg scale-105 border-4 border-yellow-500'
+                                                : entry.rank === 2
+                                                    ? 'bg-gray-300 text-gray-900 border-4 border-gray-400'
+                                                    : entry.rank === 3
+                                                        ? 'bg-orange-400 text-gray-900 border-4 border-orange-500'
+                                                        : 'bg-white bg-opacity-90 text-gray-900'
                                                 } ${expandedRank === entry.rank ? 'rounded-b-none' : ''}`}
                                         >
                                             <div className="flex items-center gap-4">
@@ -96,12 +96,16 @@ function Rankings({ showRankings, setShowRankings, socket }) {
                                             <div className="bg-gray-100 p-4 rounded-b-lg border-2 border-t-0 border-gray-300">
                                                 <h4 className="font-bold text-sm mb-2 text-gray-700">Historial de victorias:</h4>
                                                 <div className="space-y-1 max-h-40 overflow-y-auto">
-                                                    {entry.timestamps.map((timestamp, index) => (
-                                                        <div key={index} className="text-xs text-gray-600 flex justify-between">
-                                                            <span>Victoria #{entry.timestamps.length - index}</span>
-                                                            <span>{formatDate(timestamp)}</span>
-                                                        </div>
-                                                    ))}
+                                                    {entry.timestamps.map((_, index) => {
+                                                        const reverseIndex = entry.timestamps.length - 1 - index;
+                                                        const timestamp = entry.timestamps[reverseIndex];
+                                                        return (
+                                                            <div key={index} className="text-xs text-gray-600 flex justify-between">
+                                                                <span>Victoria #{reverseIndex + 1}</span>
+                                                                <span>{formatDate(timestamp)}</span>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}

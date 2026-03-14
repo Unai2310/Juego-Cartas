@@ -49,6 +49,8 @@ function addWin(name) {
     const rankings = getRankings();
     const existingIndex = rankings.findIndex(r => r.name.toLowerCase() === name.toLowerCase());
 
+    const now = Date.now();
+
     if (existingIndex >= 0) {
         rankings[existingIndex].wins++;
         rankings[existingIndex].timestamps.push(now);

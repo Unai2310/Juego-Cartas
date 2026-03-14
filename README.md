@@ -12,6 +12,8 @@ Un juego de cartas multijugador en tiempo real que admite tanto baraja de Póker
 - **Clasificación en vivo**: La barra lateral muestra el ranking según las vidas restantes
 - **Resultados mano a mano**: El ganador recoge las cartas después de cada mano
 - **Selección de repartidor**: El anfitrión puede elegir asignación aleatoria o manual del repartidor
+- **Manipulacion de vidas**: El anfitrión puede reducir o aumentar el numero de vidas de los jugadores dentro de los límites
+- **Ranking de victorias**: Cuenta con un ranking de las victorias obtenidas por los jugadores al estilo de los registros de las máquinas arcades
 
 ## 🚀 Tecnologías utilizadas
 

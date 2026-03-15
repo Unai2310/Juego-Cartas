@@ -88,7 +88,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
         return (
             <div className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-purple-700 to-purple-900 shadow-2xl p-4 overflow-y-auto z-10">
-                 <div className="fixed top-10 right-10 flex gap-2 z-40">
+                <div className="fixed top-10 right-10 flex gap-2 z-40">
                     <button
                         onClick={() => setShowTutorial(true)}
                         className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-200 z-50"
@@ -692,7 +692,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                         style={{ width: 'auto', height: '.5.25rem' }}>
                                         {hasBet ? (
                                             <div className="text-xs font-bold text-gray-700">
-                                                {player.bet}/{player.wins || 0}
+                                                V:{player.wins}  A:{player.bet || 0}
                                             </div>
                                         ) : (
                                             <div className="text-xl font-bold text-gray-400">-</div>

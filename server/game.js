@@ -642,6 +642,18 @@ class Game {
         const player = this.players.get(socketId);
         const activePlayers = this.getActivePlayers();
         const isOneCardRound = this.currentRound === 1;
+        const isSpectator = player && player.lives === 0;
+
+        const spectatorAllCards = isSpectator ? (() => {
+            const cards = {};
+            this.playerOrder.forEach(playerId => {
+                const p = this.players.get(playerId);
+                if (p && p.lives > 0) {
+                    cards[playerId] = this.hands.get(playerId) || [];
+                }
+            });
+            return cards;
+        })() : {};
 
         const dealerIndexInActivePlayers = this.getDealerIndex();
 
@@ -693,6 +705,7 @@ class Game {
             myHand: (isOneCardRound && this.currentPhase === 'oneCardBetting') ? [] : (this.hands.get(socketId) || []),
             otherPlayersCards: otherPlayersCards,
             allCards: allCards,
+            spectatorAllCards: spectatorAllCards,
             currentTrick: this.currentTrick,
             gameStarted: this.gameStarted,
             isMyTurn: activePlayers[this.currentPlayerIndex] === socketId,

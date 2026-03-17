@@ -37,7 +37,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         placeOneCardBet(willWin)
     }
 
-    const renderCard = (card) => {
+    const renderCard = (card, width = 'auto', height = '8rem') => {
 
         if (card.value === '?' && card.suit === '?') {
             return (
@@ -45,7 +45,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                     src="/cards/back.PNG"
                     alt="Hidden card"
                     className="rounded-lg shadow-lg"
-                    style={{ width: 'auto', height: '8rem' }}
+                    style={{ width, height }}
                 />
             );
         }
@@ -65,10 +65,52 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                 src={`/cards/${filename}`}
                 alt={`${card.value} of ${card.suit}`}
                 className="rounded-lg shadow-lg"
-                style={{ width: 'auto', height: '8rem' }}
+                style={{ width, height }}
             />
         );
 
+
+    }
+
+    const renderSpectatorView = () => {
+        const isSpectator = gameState.players.find(p => p.id === gameState.myPlayerId)?.lives === 0;
+
+        if (!isSpectator) return null;
+        return (
+            <div className="mb-6 bg-blue-50 border-2 border-blue-400 rounded-lg p-6">
+                <h3 className="text-xl font-bold mb-4 text-blue-800 text-center">
+                    Vista de Espectador - Todas las manos
+                </h3>
+
+                <div className="flex gap-2 flex-wrap justify-center">
+                    {gameState.players
+                        .filter(p => p.lives > 0)
+                        .map(player => {
+                            const playerCards = gameState.spectatorAllCards?.[player.id] || [];
+
+                            return (
+                                <div key={player.id} className="bg-white rounded-lg p-4 shadow">
+                                    <h4 className="font-bold text-lg mb-3 text-center text-gray-800 truncate max-w-[300px]">
+                                        {player.name}
+                                    </h4>
+
+                                    <div className="flex gap-2 flex-wrap justify-center">
+                                        {playerCards.length > 0 ? (
+                                            playerCards.map((card, index) => (
+                                                <div key={index}>
+                                                    {renderCard(card, '4rem', 'auto')}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-gray-500 text-sm">Sin cartas</div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                </div>
+            </div>
+        );
 
     }
 
@@ -306,6 +348,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
     }
 
     const renderBettingPhase = () => {
+        const isSpectator = gameState.players.find(p => p.id === gameState.myPlayerId)?.lives === 0;
         return (
             <div className="ml-64">
                 {renderPlayers()}
@@ -400,17 +443,19 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                         </div>
                     </div>
                 </div>
-
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="text-base font-bold mb-4 text-gray-800">Tu mano</h3>
-                    <div className="flex gap-4 flex-wrap justify-center">
-                        {gameState.myHand.map((card, index) => (
-                            <div key={index}>
-                                {renderCard(card)}
-                            </div>
-                        ))}
+                {!isSpectator && gameState.myHand && gameState.myHand.length > 0 && (
+                    <div className="bg-white rounded-lg shadow-lg p-6">
+                        <h3 className="text-base font-bold mb-4 text-gray-800">Tu mano</h3>
+                        <div className="flex gap-4 flex-wrap justify-center">
+                            {gameState.myHand.map((card, index) => (
+                                <div key={index}>
+                                    {renderCard(card)}
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
+                {renderSpectatorView()}
             </div>
         )
     }
@@ -513,6 +558,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
     }
 
     const renderPlayingPhase = () => {
+        const isSpectator = gameState.players.find(p => p.id === gameState.myPlayerId)?.lives === 0;
         return (
             <div className="ml-64">
                 {renderPlayers()}
@@ -594,7 +640,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                         <div className="mb-6">
                             <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
                                 <div className="text-base font-semibold text-green-800">
-                                    🏆 <span className="truncate max-w-[3000px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
+                                    🏆 <span className="truncate max-w-[1000px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
                                 </div>
                             </div>
 
@@ -607,7 +653,7 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                                     return (
                                         <div key={index} className="text-center">
                                             <div className="text-sm font-semibold mb-2">
-                                                {player?.name} {isMe && '(Tú)'}
+                                                {player?.name}
                                             </div>
                                             {renderCard(play.card)}
                                             <div className="mt-2 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm mx-auto shadow-lg">
@@ -620,59 +666,62 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                         </div>
                     )}
                 </div>
-
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="text-base font-bold mb-4 text-gray-800">Tu mano</h3>
-                    {gameState.isMyTurn ? (
-                        <div>
-                            <div className="text-green-600 font-semibold mb-3">Tu turno - Haz click en una carta para jugarla!</div>
-                            <div className="flex gap-4 flex-wrap justify-center">
-                                {gameState.myHand.map((card, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => playCard(index)}
-                                        className="transform hover:scale-105 transition duration-200 hover:shadow-2xl"
-                                    >
-                                        {renderCard(card)}
-                                    </button>
-                                ))}
+                {renderSpectatorView()}
+                {!isSpectator && gameState.myHand && gameState.myHand.length > 0 && (
+                    <div className="bg-white rounded-lg shadow-lg p-6">
+                        <h3 className="text-base font-bold mb-4 text-gray-800">Tu mano</h3>
+                        {gameState.isMyTurn ? (
+                            <div>
+                                <div className="text-green-600 font-semibold mb-3">Tu turno - Haz click en una carta para jugarla!</div>
+                                <div className="flex gap-4 flex-wrap justify-center">
+                                    {gameState.myHand.map((card, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => playCard(index)}
+                                            className="transform hover:scale-105 transition duration-200 hover:shadow-2xl"
+                                        >
+                                            {renderCard(card)}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div>
-                            <div className="text-gray-600 mb-3">
-                                {(() => {
-                                    const currentPlayer = gameState.players.find(p => p.id === gameState.currentPlayerId);
-                                    return currentPlayer ? `${currentPlayer.name} esta jugando... espera tu turno` : 'Waiting for other players...';
-                                })()}
+                        ) : (
+                            <div>
+                                <div className="text-gray-600 mb-3">
+                                    {(() => {
+                                        const currentPlayer = gameState.players.find(p => p.id === gameState.currentPlayerId);
+                                        return currentPlayer ? `${currentPlayer.name} esta jugando... espera tu turno` : 'Waiting for other players...';
+                                    })()}
+                                </div>
+                                <div className="flex gap-4 flex-wrap justify-center">
+                                    {gameState.myHand.map((card, index) => (
+                                        <div key={index} className="opacity-60">
+                                            {renderCard(card)}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex gap-4 flex-wrap justify-center">
-                                {gameState.myHand.map((card, index) => (
-                                    <div key={index} className="opacity-60">
-                                        {renderCard(card)}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
             </div>
         )
     }
 
     const renderTrickEnd = () => {
+        const isSpectator = gameState.players.find(p => p.id === gameState.myPlayerId)?.lives === 0;
         return (
             <div className="ml-64">
                 {renderPlayers()}
 
-                <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div className="bg-white rounded-lg shadow-lg p-6 mb-3 text-center">
                     <h2 className="text-xl font-bold mb-4 text-gray-800">Mano Completada!</h2>
 
                     {/* Anuncio del jugador ganador de la ronda */}
                     {gameState.lastTrickWinner && (
                         <div className="mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-500 text-center">
                             <div className="text-base font-semibold text-green-800 flex items-center justify-center gap-1">
-                                🏆 <span className="truncate max-w-[3000px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
+                                🏆 <span className="truncate max-w-[1000px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span> ganó la mano!
                             </div>
                         </div>
                     )}
@@ -705,7 +754,6 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                             );
                         })}
                     </div>
-
                     {/* Boton de continuar (Solo al ganador de la mano) */}
                     {gameState.lastTrickWinner === gameState.myPlayerId ? (
                         <button
@@ -715,11 +763,26 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                             Recoger Cartas y Continuar a la siguiente mano
                         </button>
                     ) : (
-                        <div className="text-gray-600 text-base">
-                            Esperando a {gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name} recoja las cartas...
+                        <div className="text-gray-600 text-base flex items-center gap-1 justify-center">
+                            <span>Esperando a que</span>
+                            <span className="truncate max-w-[300px]">{gameState.players.find(p => p.id === gameState.lastTrickWinner)?.name}</span>
+                            <span>recoja las cartas...</span>
                         </div>
                     )}
                 </div>
+                {!isSpectator && gameState.myHand && gameState.myHand.length > 0 && (
+                    <div className="bg-white rounded-lg shadow-lg p-6">
+                        <h3 className="text-base font-bold mb-4 text-gray-800">Tu mano</h3>
+                        <div className="flex gap-4 flex-wrap justify-center">
+                            {gameState.myHand.map((card, index) => (
+                                <div key={index}>
+                                    {renderCard(card)}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {renderSpectatorView()}
             </div>
         );
     }
@@ -902,8 +965,10 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                             Repartir Siguiente Ronda
                         </button>
                     ) : (
-                        <div className="text-gray-600 text-base">
-                            Esperando a que {activePlayers[gameState.dealerIndex]?.name} reparta la siguiente ronda...
+                        <div className="text-gray-600 text-base flex items-center gap-1 justify-center">
+                            <span>Esperando a que</span>
+                            <span className="truncate max-w-[300px]">{activePlayers[gameState.dealerIndex]?.name}</span>
+                            <span>reparta la siguiente ronda...</span>
                         </div>
                     )}
                 </div>
@@ -954,12 +1019,15 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
                     {/* Ranking submission button for winner */}
                     {isWinner && !showRankingSubmit && !rankingSuccess && (
-                        <button
-                            onClick={() => setShowRankingSubmit(true)}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-lg text-xl mb-4 transition duration-200"
-                        >
-                            🏆 Añadir a Rankings
-                        </button>
+                        <div className="text-green-800 font-bold text-lg">
+                            <button
+                                onClick={() => setShowRankingSubmit(true)}
+                                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-lg text-xl mb-4 transition duration-200"
+                            >
+                                🏆 Añadir a Rankings
+                            </button>
+                        </div>
+
                     )}
 
                     {/* Ranking submission form */}
@@ -1042,7 +1110,13 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
                     {gameState.isCreator && (
                         <button
-                            onClick={restartGame}
+                            onClick={() => {
+                                setRankingSuccess(false);
+                                setShowRankingSubmit(false);
+                                setRankingName('');
+                                setRankingError('');
+                                restartGame();
+                            }}
                             className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-xl transition duration-200"
                         >
                             Jugar de Nuevo

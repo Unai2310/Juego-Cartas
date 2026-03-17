@@ -1,0 +1,2 @@
+-Lógica para los dos pierden la ultima vida
+-Deshabilitar boton de jugar de nuevo hasta que el ganador se apunte

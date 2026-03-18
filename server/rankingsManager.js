@@ -1,50 +1,47 @@
-const fs = require('fs');
-const path = require('path');
+const gistManager = require('./gistManager');
 
-const RANKINGS_FILE = path.join(__dirname, 'rankings.json');
+let rankingsCache = { rankings: [] };
+let cacheLastUpdated = 0;
+const CACHE_DURATION = 30000; 
 
-// Inicializacion del fichero si no existe
-function initRankingsFile() {
-    try {
-        if (!fs.existsSync(RANKINGS_FILE)) {
-            fs.writeFileSync(RANKINGS_FILE, JSON.stringify({ rankings: [] }, null, 2));
-        } else {
-            const data = fs.readFileSync(RANKINGS_FILE, 'utf8');
-            if (!data || data.trim() === '') {
-                fs.writeFileSync(RANKINGS_FILE, JSON.stringify({ rankings: [] }, null, 2));
-            } else {
-                JSON.parse(data);
-            }
-        }
-    } catch (error) {
-        console.error('Error initializing rankings file, recreating:', error.message);
-        fs.writeFileSync(RANKINGS_FILE, JSON.stringify({ rankings: [] }, null, 2));
-    }
-}
-
-// Leer rankings del fichero
 function getRankings() {
-    initRankingsFile();
-    try {
-        const data = fs.readFileSync(RANKINGS_FILE, 'utf8');
-        const parsed = JSON.parse(data);
-        return parsed.rankings || [];
-    } catch (error) {
-        console.error('Error reading rankings file:', error.message);
-        return [];
-    }
+    return rankingsCache.rankings || [];
 }
 
-// Guardar rankigs en el fichero
+function loadRankingsFromGist(callback) {
+    gistManager.fetchRankings((error, data) => {
+        if (error) {
+            console.error('Error fetching from Gist:', error.message);
+            return callback(error);
+        }
+        rankingsCache = data;
+        cacheLastUpdated = Date.now();
+        callback(null, data.rankings);
+    });
+}
+
 function saveRankings(rankings) {
-    try {
-        fs.writeFileSync(RANKINGS_FILE, JSON.stringify({ rankings }, null, 2));
-    } catch (error) {
-        console.error('Error saving rankings:', error.message);
-    }
+    rankingsCache = { rankings };
+
+    gistManager.saveRankings(rankingsCache, (error) => {
+        if (error) {
+            console.error('Error saving to Gist:', error.message);
+        } else {
+            console.log('Rankings saved to Gist successfully');
+        }
+    });
 }
 
-// Añadir victoria
+function initialize(callback) {
+    loadRankingsFromGist((error) => {
+        if (error) {
+            console.log('Starting with empty rankings');
+            rankingsCache = { rankings: [] };
+        }
+        callback();
+    });
+}
+
 function addWin(name) {
     const rankings = getRankings();
     const existingIndex = rankings.findIndex(r => r.name.toLowerCase() === name.toLowerCase());
@@ -53,6 +50,9 @@ function addWin(name) {
 
     if (existingIndex >= 0) {
         rankings[existingIndex].wins++;
+        if (!rankings[existingIndex].timestamps) {
+            rankings[existingIndex].timestamps = [];
+        }
         rankings[existingIndex].timestamps.push(now);
         rankings[existingIndex].lastWin = now;
     } else {
@@ -68,7 +68,6 @@ function addWin(name) {
     return true;
 }
 
-// Obtener top (Primero wins luego mas recientes)
 function getTopRankings(limit = 10) {
     const rankings = getRankings();
     return rankings
@@ -88,6 +87,7 @@ function getTopRankings(limit = 10) {
 }
 
 module.exports = {
+    initialize,
     addWin,
     getTopRankings
 };

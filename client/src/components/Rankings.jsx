@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react'
 function Rankings({ showRankings, setShowRankings, socket }) {
     const [rankings, setRankings] = useState([])
     const [loading, setLoading] = useState(false)
-    const [expandedRank, setExpandedRank] = useState(null) // Track which rank is expanded
+    const [expandedRank, setExpandedRank] = useState(null)
 
     useEffect(() => {
         if (showRankings) {
             loadRankings()
         }
-    }, [showRankings])
+    }, [showRankings, socket])
 
     const loadRankings = () => {
         setLoading(true)

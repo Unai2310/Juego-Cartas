@@ -1101,26 +1101,23 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
 
                     {rankingSuccess && (
                         <div className="bg-green-100 border-2 border-green-500 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                            <button
+                                onClick={() => {
+                                    setRankingSuccess(false);
+                                    setShowRankingSubmit(false);
+                                    setRankingName('');
+                                    setRankingError('');
+                                    restartGame();
+                                }}
+                                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-xl transition duration-200"
+                            >
+                                Jugar de Nuevo
+                            </button>
                             <div className="text-green-800 font-bold text-lg">
                                 ✓ ¡Victoria añadida al ranking!
                             </div>
                         </div>
-                    )}
 
-
-                    {gameState.isCreator && (
-                        <button
-                            onClick={() => {
-                                setRankingSuccess(false);
-                                setShowRankingSubmit(false);
-                                setRankingName('');
-                                setRankingError('');
-                                restartGame();
-                            }}
-                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-xl transition duration-200"
-                        >
-                            Jugar de Nuevo
-                        </button>
                     )}
                 </div>
             </div>

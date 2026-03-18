@@ -9,6 +9,8 @@ const rankingsManager = require('./rankingsManager');
 const app = express();
 const httpServer = http.createServer(app);
 
+rankingsManager.initialize(() => { console.log('Rankings loaded from Gist'); });
+
 app.use(cors({
     origin: true,
     credentials: true
@@ -285,15 +287,6 @@ io.on('connection', (socket) => {
         const game = games.get(currentGameCode);
         if (!game) {
             console.log('Game not found');
-            return;
-        }
-
-        console.log('Creator ID:', game.creatorId, 'Socket ID:', socket.id);
-
-        // Comprobar que el unico que puede resetear es el creador de sala
-        if (socket.id !== game.creatorId) {
-            console.log('Not the creator, rejecting');
-            socket.emit('error', 'Only the host can restart the game');
             return;
         }
 

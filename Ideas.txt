@@ -1,4 +1,1 @@
 -Lógica para los dos pierden la ultima vida (No la pierden y sigue hasta que pierda 1)
--Boton de jugar de nuevo para el ganador de la partida
--Ordenar manos espectador
--Exportar Json rankingsa Github Guist()

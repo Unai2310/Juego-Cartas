@@ -561,6 +561,7 @@ class Game {
     }
 
     endRound() {
+        const activePlayers = this.getActivePlayers();
         const lifeLosses = {};
         this.lastRoundLifeLosses = {};
         const wasOneCardRound = this.currentRound === 1;
@@ -613,7 +614,6 @@ class Game {
         this.currentPhase = 'roundEnd';
 
         // Cambiar de dealer al finalizar la ronda
-        const activePlayers = this.getActivePlayers();
         const currentDealerIndex = activePlayers.indexOf(this.dealerPlayerId);
         const nextDealerIndex = (currentDealerIndex + 1) % activePlayers.length;
         this.dealerPlayerId = activePlayers[nextDealerIndex];

@@ -76,6 +76,15 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
         const isSpectator = gameState.players.find(p => p.id === gameState.myPlayerId)?.lives === 0;
 
         if (!isSpectator) return null;
+
+        const activePlayers = gameState.players.filter(p => p.lives > 0);
+        const dealerIndex = gameState.dealerIndex;
+
+        const orderedPlayers = [
+            ...activePlayers.slice(dealerIndex + 1),
+            ...activePlayers.slice(0, dealerIndex + 1)
+        ];
+
         return (
             <div className="mb-6 bg-blue-50 border-2 border-blue-400 rounded-lg p-6">
                 <h3 className="text-xl font-bold mb-4 text-blue-800 text-center">
@@ -83,31 +92,30 @@ function GameBoard({ socket, gameState, startGame, placeBet, placeOneCardBet, pl
                 </h3>
 
                 <div className="flex gap-2 flex-wrap justify-center">
-                    {gameState.players
-                        .filter(p => p.lives > 0)
-                        .map(player => {
-                            const playerCards = gameState.spectatorAllCards?.[player.id] || [];
+                    {orderedPlayers.map((player, playerIndex) => {
+                        const playerCards = gameState.spectatorAllCards?.[player.id] || [];
 
-                            return (
-                                <div key={player.id} className="bg-white rounded-lg p-4 shadow">
-                                    <h4 className="font-bold text-lg mb-3 text-center text-gray-800 truncate max-w-[300px]">
-                                        {player.name}
-                                    </h4>
+                        return (
+                            <div key={player.id} className="bg-white rounded-lg p-4 shadow">
+                                <h4 className="font-bold text-lg mb-3 text-center text-gray-800 truncate max-w-[300px]">
+                                    {player.name}
 
-                                    <div className="flex gap-2 flex-wrap justify-center">
-                                        {playerCards.length > 0 ? (
-                                            playerCards.map((card, index) => (
-                                                <div key={index}>
-                                                    {renderCard(card, '4rem', 'auto')}
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-gray-500 text-sm">Sin cartas</div>
-                                        )}
-                                    </div>
+                                </h4>
+
+                                <div className="flex gap-2 flex-wrap justify-center">
+                                    {playerCards.length > 0 ? (
+                                        playerCards.map((card, index) => (
+                                            <div key={index}>
+                                                {renderCard(card, '4rem', 'auto')}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-gray-500 text-sm">Sin cartas</div>
+                                    )}
                                 </div>
-                            );
-                        })}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         );

@@ -419,7 +419,6 @@ io.on('connection', (socket) => {
         try {
             const rankings = rankingsManager.getTopRankings(limit || 10);
             callback({ success: true, rankings });
-            console.log(rankings);
         } catch (error) {
             callback({ success: false, error: error.message });
         }

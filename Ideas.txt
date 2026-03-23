@@ -1,1 +1,2 @@
 -Lógica para los dos pierden la ultima vida (No la pierden y sigue hasta que pierda 1)
+-Actualizacion Ranking en timepo real

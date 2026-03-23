@@ -8,6 +8,10 @@ function getRankings() {
     return rankingsCache.rankings || [];
 }
 
+function refreshFromGist(callback) {
+  loadRankingsFromGist(callback);
+}
+
 function loadRankingsFromGist(callback) {
     gistManager.fetchRankings((error, data) => {
         if (error) {
@@ -89,5 +93,6 @@ function getTopRankings(limit = 10) {
 module.exports = {
     initialize,
     addWin,
-    getTopRankings
+    getTopRankings,
+    refreshFromGist
 };

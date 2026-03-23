@@ -419,7 +419,27 @@ io.on('connection', (socket) => {
         try {
             const rankings = rankingsManager.getTopRankings(limit || 10);
             callback({ success: true, rankings });
+            console.log(rankings);
         } catch (error) {
+            callback({ success: false, error: error.message });
+        }
+    });
+
+    // Actualizar datos desde Gist
+    socket.on('refreshRankingsFromGist', (callback) => {
+        try {
+            rankingsManager.refreshFromGist((error, rankings) => {
+                if (error) {
+                    console.error('Error actualizando desde Gist:', error.message);
+                    return callback({ success: false, error: error.message });
+                }
+
+                const topRankings = rankingsManager.getTopRankings(10);
+                console.log('Rankings actualizados al ultimo Gist:', topRankings);
+                callback({ success: true, rankings: topRankings });
+            });
+        } catch (error) {
+            console.error('Error actualizando desde Gist:', error.message);
             callback({ success: false, error: error.message });
         }
     });

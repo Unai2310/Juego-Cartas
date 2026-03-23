@@ -11,14 +11,26 @@ function Rankings({ showRankings, setShowRankings, socket }) {
         }
     }, [showRankings, socket])
 
-    const loadRankings = () => {
+    const loadRankings = (forceRefresh = false) => {
         setLoading(true)
-        socket.emit('getTopRankings', 10, (response) => {
-            setLoading(false)
-            if (response.success) {
-                setRankings(response.rankings)
-            }
-        })
+
+        if (forceRefresh) {
+            socket.emit('refreshRankingsFromGist', (response) => {
+                setLoading(false)
+                if (response.success) {
+                    setRankings(response.rankings)
+                } else {
+                    console.error('Error refreshing:', response.error)
+                }
+            })
+        } else {
+            socket.emit('getTopRankings', 10, (response) => {
+                setLoading(false)
+                if (response.success) {
+                    setRankings(response.rankings)
+                }
+            })
+        }
     }
 
     const formatDate = (timestamp) => {
@@ -116,7 +128,7 @@ function Rankings({ showRankings, setShowRankings, socket }) {
                     </div>
 
                     <button
-                        onClick={loadRankings}
+                        onClick={() => loadRankings(true)}
                         className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg"
                     >
                         🔄 Actualizar Rankings

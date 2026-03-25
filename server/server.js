@@ -434,7 +434,7 @@ io.on('connection', (socket) => {
                 }
 
                 const topRankings = rankingsManager.getTopRankings(10);
-                console.log('Rankings actualizados al ultimo Gist:', topRankings);
+                console.log('Rankings actualizados al ultimo Gist');
                 callback({ success: true, rankings: topRankings });
             });
         } catch (error) {

@@ -20,7 +20,7 @@ class Game {
         this.lastRoundDealerId = null;
         this.deckType = settings.deckType || 'poker';
         this.settings = {
-            startingLives: settings.startingLives || 5,
+            startingLives: settings.startingLives || 1,
             deckType: settings.deckType || 'poker',
             ...settings
         };
@@ -119,7 +119,8 @@ class Game {
             throw new Error('Se necesitan al menos 2 jugadores para poder empezar');
         }
         this.gameStarted = true;
-        this.currentRound = this.getActivePlayers().length === 2 ? 1 : 5;
+        //this.currentRound = this.getActivePlayers().length === 2 ? 1 : 5;
+        this.currentRound = 1
 
         const activePlayers = this.getActivePlayers();
 
@@ -565,7 +566,6 @@ class Game {
     }
 
     endRound() {
-        const activePlayers = this.getActivePlayers();
         const lifeLosses = {};
         this.lastRoundLifeLosses = {};
         const wasOneCardRound = this.currentRound === 1;
@@ -610,18 +610,14 @@ class Game {
         this.lastRoundLifeLosses = lifeLosses;
         this.wasLastRoundOneCard = wasOneCardRound;
 
-        // Comprobar final de la partida
-        if (this.checkGameEnd()) {
-            return;
-        }
-
-        this.currentPhase = 'roundEnd';
-
         // Cambiar de dealer al finalizar la ronda
-        const currentDealerIndex = activePlayers.indexOf(this.dealerPlayerId);
-        const nextDealerIndex = (currentDealerIndex + 1) % activePlayers.length;
-        this.dealerPlayerId = activePlayers[nextDealerIndex];
         const newActivePlayers = this.getActivePlayers();
+        const currentDealerIndex = newActivePlayers.indexOf(this.dealerPlayerId);
+        if (currentDealerIndex === -1) {
+            currentDealerIndex = -1;
+        }
+        const nextDealerIndex = (currentDealerIndex + 1) % newActivePlayers.length;
+        this.dealerPlayerId = newActivePlayers[nextDealerIndex];
 
         // Cambiar el numero de cartas repartidas en la ronda
         if (newActivePlayers.length === 2) {
@@ -631,6 +627,13 @@ class Game {
         } else {
             this.currentRound--;
         }
+
+        // Comprobar final de la partida
+        if (this.checkGameEnd()) {
+            return;
+        }
+
+        this.currentPhase = 'roundEnd';
     }
 
     checkGameEnd() {

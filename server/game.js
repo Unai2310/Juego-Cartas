@@ -20,7 +20,7 @@ class Game {
         this.lastRoundDealerId = null;
         this.deckType = settings.deckType || 'poker';
         this.settings = {
-            startingLives: settings.startingLives || 1,
+            startingLives: settings.startingLives || 5,
             deckType: settings.deckType || 'poker',
             ...settings
         };
@@ -119,8 +119,7 @@ class Game {
             throw new Error('Se necesitan al menos 2 jugadores para poder empezar');
         }
         this.gameStarted = true;
-        //this.currentRound = this.getActivePlayers().length === 2 ? 1 : 5;
-        this.currentRound = 1
+        this.currentRound = this.getActivePlayers().length === 2 ? 1 : 5;
 
         const activePlayers = this.getActivePlayers();
 

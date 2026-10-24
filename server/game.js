@@ -193,12 +193,6 @@ class Game {
             this.roundWins.set(playerId, 0);
         });
 
-        for (const [playerId, cartas] of this.hands) {
-            const player = this.players.get(playerId);
-            const cartasString = cartas.map(c => c.value).join(', ');
-            console.log(`Jugador: ${player?.name || 'Unknown'} - Cartas: ${cartasString}`);
-        }
-
         // El jugador siguiente al dealer empieza a apostar
         let dealerIdx = this.getDealerIndex();
 
